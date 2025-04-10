@@ -11,7 +11,7 @@
         
         /* Make the Interactions column scrollable */
         .scrollable-column {
-            max-height: 200px;
+            max-height: 300px;
             overflow-y: auto;
             display: block;
             width: 200px;
@@ -55,17 +55,9 @@
                 <td>{{ row['Uses'] }}</td>
                 <td>{{ row['Side_effects'] }}</td>
                 <td class="scrollable-column">
-                    {% set interactions = interactions_dict.get(row['Medicine Name'] | lower | trim, []) %}
-                    {% if interactions %}
-                        <ul>
-                            {% for interaction in interactions[:100] %}
-                                <li>{{ interaction }}</li>
-                            {% endfor %}
-                        </ul>
-                    {% else %}
-                        No interactions found
-                    {% endif %}
-                </td>
+                    <button class="btn btn-sm btn-outline-primary" data-composition="{{ row['Composition'] | e }}" onclick="loadInteractions(this)">Show Interactions</button>
+                    <div class="interactions mt-2" style="display:none;"></div>
+                </td>                
                 <td>
                     👍 {{ row['Excellent Review %'] }}%<br>
                     😐 {{ row['Average Review %'] }}%<br>
@@ -78,3 +70,43 @@
     
 </body>
 </html>
+
+<script>
+    function loadInteractions(buttonElement) {
+        const composition = buttonElement.dataset.composition;
+
+        fetch('/interactions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ composition: composition })
+        })
+        .then(response => response.json())
+        .then(data => {
+            const interactionsDiv = buttonElement.nextElementSibling;
+            interactionsDiv.innerHTML = '';
+
+            if (data.interactions && data.interactions.length > 0) {
+                const list = document.createElement('ul');
+                data.interactions.forEach(interaction => {
+                    const li = document.createElement('li');
+                    li.textContent = interaction;
+                    list.appendChild(li);
+                });
+                interactionsDiv.appendChild(list);
+            } else {
+                interactionsDiv.textContent = 'No interactions found';
+            }
+
+            interactionsDiv.style.display = 'block';
+            buttonElement.remove();  // Optional: remove button after loading
+        })
+        .catch(error => {
+            console.error('Error loading interactions:', error);
+        });
+    }
+</script>
+
+    
+    
