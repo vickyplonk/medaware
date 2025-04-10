@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,6 +8,14 @@
         body { padding: 20px; }
         img { max-width: 100px; }
         .filter-bar { margin-bottom: 20px; }
+        
+        /* Make the Interactions column scrollable */
+        .scrollable-column {
+            max-height: 200px;
+            overflow-y: auto;
+            display: block;
+            width: 200px;
+        }
     </style>
 </head>
 <body>
@@ -47,11 +54,11 @@
                 <td>{{ row['Composition'] }}</td>
                 <td>{{ row['Uses'] }}</td>
                 <td>{{ row['Side_effects'] }}</td>
-                <td>
-                    {% set interactions = interactions_dict[row['Medicine Name']] %}
+                <td class="scrollable-column">
+                    {% set interactions = interactions_dict.get(row['Medicine Name'] | lower | trim, []) %}
                     {% if interactions %}
                         <ul>
-                            {% for interaction in interactions %}
+                            {% for interaction in interactions[:100] %}
                                 <li>{{ interaction }}</li>
                             {% endfor %}
                         </ul>

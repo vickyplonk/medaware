@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request
 import pandas as pd
+import re
 
 app = Flask(__name__)
 df = pd.read_csv('medicine_data.csv')
@@ -27,21 +28,38 @@ def index():
 
     # For each medicine in filtered data, look for interactions in df1
     for index, row in filtered_df.iterrows():
-        medicine_name = row['Medicine Name']
+        medicine_name = row['Medicine Name'].strip().lower()
         interactions = []
 
-        # Find interactions for the current medicine
-        interaction_rows = df1[(df1['Drug 1'].str.lower() == medicine_name.lower()) | 
-                               (df1['Drug 2'].str.lower() == medicine_name.lower())]
-        
-        # Add interaction descriptions to the list
-        for _, interaction_row in interaction_rows.iterrows():
-            if interaction_row['Drug 1'].lower() == medicine_name.lower():
-                interactions.append(f"Interaction with {interaction_row['Drug 2']}: {interaction_row['Interaction']}")
-            elif interaction_row['Drug 2'].lower() == medicine_name.lower():
-                interactions.append(f"Interaction with {interaction_row['Drug 1']}: {interaction_row['Interaction']}")
-        
+        composition = row['Composition'].strip().lower()
+        print(f"Searching for interactions with composition: {composition}")
+
+        # Split composition by '+' or ',' to handle multiple ingredients
+        components = re.split(r'\s*\+\s*|\s*,\s*', composition)
+
+        for comp in components:
+            # Remove dosage info in parentheses e.g. (325mg)
+            base_name = re.sub(r'\s*\(.*?\)', '', comp).strip().lower()
+
+            if not base_name:
+                continue
+
+            drug1_matches = df1[df1['Drug 1'].str.contains(base_name, case=False, na=False)]
+            drug2_matches = df1[df1['Drug 2'].str.contains(base_name, case=False, na=False)]
+
+            print(f"Component: {base_name}")
+            print(f"Matches in Drug 1: {drug1_matches[['Drug 1', 'Drug 2', 'Interaction']]}")
+            print(f"Matches in Drug 2: {drug2_matches[['Drug 1', 'Drug 2', 'Interaction']]}")
+
+            for _, interaction_row in drug1_matches.iterrows():
+                interactions.append(f"{base_name.title()} interacts with {interaction_row['Drug 2']}: {interaction_row['Interaction']}")
+
+            for _, interaction_row in drug2_matches.iterrows():
+                interactions.append(f"{base_name.title()} interacts with {interaction_row['Drug 1']}: {interaction_row['Interaction']}")
+
         interactions_dict[medicine_name] = interactions
+        print(f"Interactions found for {composition}: {interactions}")
+
 
     return render_template('index.html', data=filtered_df.to_dict(orient='records'), interactions_dict=interactions_dict)
 
