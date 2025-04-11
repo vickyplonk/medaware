@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Python: Flask",
+        "type": "debugpy",
+        "request": "launch",
+        "module": "flask",
+        "env": {
+          "FLASK_APP": "main.py",  // Update this if your main app file is different
+          "FLASK_ENV": "development"
+        },
+        "args": [
+          "run"
+        ],
+
+      }
+    ]
+  }
