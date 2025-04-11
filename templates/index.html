@@ -7,8 +7,26 @@
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
-
+    <a href="/upload" class="camera-icon">
+        <img src="static/images/camera.png" alt="Camera Icon" width="40" height="40">
+    </a>
+    
     <style>
+        .camera-icon {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: white;
+            border-radius: 50%;
+            padding: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-decoration: none;
+        }
+    
+        .camera-icon:hover img {
+            opacity: 0.8;
+        }
+
         body { padding: 20px; }
         img { max-width: 100px; }
         .filter-bar { margin-bottom: 20px; }

@@ -1,6 +1,9 @@
+import os
 from flask import Flask, render_template, request, jsonify
+from google.cloud import vision
 import pandas as pd
 import re
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
@@ -16,6 +19,7 @@ top_uses_terms = uses_df['Term'].head(200).tolist()
 brand_names = sorted(med_df['Medicine Name'].dropna().unique())
 composition_names = sorted(med_df['Composition'].dropna().unique())
 autocomplete_list = sorted(set(brand_names + composition_names))
+
 # Build interaction lookup dictionary
 interaction_lookup = {}
 for _, row in interactions_df.iterrows():
@@ -26,11 +30,21 @@ for _, row in interactions_df.iterrows():
     interaction_lookup.setdefault(drug1, []).append((drug2, interaction_text))
     interaction_lookup.setdefault(drug2, []).append((drug1, interaction_text))
 
+# Google Vision API client
+client = vision.ImageAnnotatorClient()
+
+# Configure upload folder
+UPLOAD_FOLDER = 'uploads/'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# Function to check allowed file extensions
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def clean_text(text):
     """Utility to clean and lowercase strings."""
     return re.sub(r'[^a-zA-Z0-9\s]', '', str(text)).lower()
-
 
 @app.get('/')
 def index():
@@ -78,7 +92,6 @@ def index():
 
     return render_template('index.html', data=filtered.to_dict(orient='records'), uses_terms=top_uses_terms)
 
-
 @app.post('/interactions')
 def get_interactions():
     composition = request.json.get('composition', '').lower()
@@ -92,13 +105,49 @@ def get_interactions():
 
     return jsonify(interactions=interactions[:100])  # Limit for display
 
-
 @app.get('/autocomplete')
 def autocomplete():
     query = request.args.get('term', '').lower()
     matches = [item for item in autocomplete_list if query in item.lower()]
     return jsonify(matches[:20])
 
+# Route to serve the upload form
+@app.get('/upload')
+def upload():
+    return render_template('upload.html')
+
+# Route to handle the file upload and text recognition
+@app.post('/upload')
+def upload_prescription():
+    if 'prescription' not in request.files:
+        return jsonify({'error': 'No file part'})
+    
+    file = request.files['prescription']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'})
+    
+    if file and allowed_file(file.filename):
+        # Secure the filename and save the image
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+
+        # Call Google Vision API to extract text
+        with open(filepath, 'rb') as image_file:
+            content = image_file.read()
+        image = vision.Image(content=content)
+        response = client.text_detection(image=image)
+        texts = response.text_annotations
+
+        # Extract the recognized text
+        recognized_text = texts[0].description if texts else ""
+
+        # Match recognized text with medicines
+        matching_medicines = [med for med in med_df['Medicine Name'].unique() if clean_text(med) in clean_text(recognized_text)]
+
+        return render_template('upload.html', recognized_text=recognized_text, matching_medicines=matching_medicines)
+
+    return render_template('upload.html', recognized_text=None, matching_medicines=None)
 
 if __name__ == '__main__':
     app.run(debug=True)
