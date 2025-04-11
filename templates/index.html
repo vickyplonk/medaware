@@ -39,6 +39,11 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Filter by use</label>
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="use-input" name="use" placeholder="e.g. pain relief"
+                                   value="{{ request.args.get('use', '') }}">
+                          </div>
+                          
                         <div class="border p-2" style="max-height: 300px; overflow-y: auto;">
                             {% for term in uses_terms %}
                                 <div class="form-check">
