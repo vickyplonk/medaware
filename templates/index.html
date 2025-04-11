@@ -50,6 +50,7 @@
                         </div>
                     </div>
                     <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+                    <button type="button" class="btn btn-outline-secondary w-100 mt-2" onclick="clearFilters()">Clear Filters</button>
                 </form>
             </div>
 
@@ -86,10 +87,9 @@
                                 😐 {{ row['Average Review %'] }}%<br>
                                 👎 {{ row['Poor Review %'] }}%
                             </td>
-                            <td>
-                                <img src="static/images/bookmark.png"  width="50" height="50"/>
-        
-                            </td>
+                            <td class="text-center align-middle">
+                                <img src="static/images/bookmark.png" width="40" height="40" />
+                            </td>                            
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -147,6 +147,20 @@
             minLength: 2
         });
     });
+    function clearFilters() {
+        const form = document.querySelector('form');
+
+        // Clear input fields
+        form.querySelector('input[name="query"]').value = '';
+        form.querySelector('input[name="side"]').value = '';
+
+        // Uncheck all checkboxes
+        const checkboxes = form.querySelectorAll('input[type="checkbox"][name="use"]');
+        checkboxes.forEach(cb => cb.checked = false);
+
+        // Submit the form
+        form.submit();
+    }
 
 </script>
 

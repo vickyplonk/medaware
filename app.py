@@ -94,7 +94,7 @@ def get_interactions():
     return jsonify(interactions=interactions[:100])  # Limit for display
 
 
-@app.post('/autocomplete')
+@app.get('/autocomplete')
 def autocomplete():
     query = request.args.get('term', '').lower()
     matches = [item for item in autocomplete_list if query in item.lower()]
