@@ -4,6 +4,10 @@ from google.cloud import vision
 import pandas as pd
 import re
 from werkzeug.utils import secure_filename
+from google import genai
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 
@@ -30,8 +34,6 @@ for _, row in interactions_df.iterrows():
     interaction_lookup.setdefault(drug1, []).append((drug2, interaction_text))
     interaction_lookup.setdefault(drug2, []).append((drug1, interaction_text))
 
-# Google Vision API client
-client = vision.ImageAnnotatorClient()
 
 # Configure upload folder
 UPLOAD_FOLDER = 'uploads/'
@@ -119,35 +121,27 @@ def upload():
 # Route to handle the file upload and text recognition
 @app.post('/upload')
 def upload_prescription():
-    if 'prescription' not in request.files:
-        return jsonify({'error': 'No file part'})
-    
-    file = request.files['prescription']
-    if file.filename == '':
-        return jsonify({'error': 'No selected file'})
-    
-    if file and allowed_file(file.filename):
-        # Secure the filename and save the image
-        filename = secure_filename(file.filename)
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
+    print(request.files)
+    client = genai.Client(api_key=os.getenv("GOOGLE_GEMINI_API_KEY"))
+    myfile = client.files.upload(file=request.files['prescription'])
+    print(f"{myfile=}")
 
-        # Call Google Vision API to extract text
-        with open(filepath, 'rb') as image_file:
-            content = image_file.read()
-        image = vision.Image(content=content)
-        response = client.text_detection(image=image)
-        texts = response.text_annotations
+    # result = client.models.generate_content(
+    #     model="gemini-2.0-flash",
+    #     contents=[
+    #         myfile,
+    #         "\n\n",
+    #         "Please extract from the image each drug name or the composition without the dosage in the format of JSON like {'Drug':'Text'}",
+    #     ],
+    # )
+    # print(f"{result.text=}")
+    # return {"output": result.text}
 
-        # Extract the recognized text
-        recognized_text = texts[0].description if texts else ""
+    # Match recognized text with medicines
+   # matching_medicines = [med for med in med_df['Medicine Name'].unique() if clean_text(med) in clean_text(recognized_text)]
 
-        # Match recognized text with medicines
-        matching_medicines = [med for med in med_df['Medicine Name'].unique() if clean_text(med) in clean_text(recognized_text)]
+    #return render_template('upload.html', recognized_text=recognized_text, matching_medicines=matching_medicines)
 
-        return render_template('upload.html', recognized_text=recognized_text, matching_medicines=matching_medicines)
-
-    return render_template('upload.html', recognized_text=None, matching_medicines=None)
 
 if __name__ == '__main__':
     app.run(debug=True)
