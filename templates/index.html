@@ -20,6 +20,18 @@
             display: block;
             width: 200px;
         }
+
+        /* style for the bookmark button */
+        .bookmark-button{
+            background-color: whitesmoke; /* Initial color */
+            border: none;
+            cursor: pointer;
+            outline: none;
+            transition: background-color 0.3s ease;
+        } 
+        .bookmark-button.clicked {
+            background-color: #212120; /* Change to your desired color */
+        }
     </style>
 </head>
 <body>
@@ -86,8 +98,12 @@
                                 😐 {{ row['Average Review %'] }}%<br>
                                 👎 {{ row['Poor Review %'] }}%
                             </td>
-                            <td>
-                                <img src="static/images/bookmark.png"  width="50" height="50"/>
+                            <td class="bookmark">
+                                <button class="bookmark-button"  onclick ="saveBookmark(this)">
+                                <img src="static/images/bookmark.png"  width="50" height="50"  />
+                                </button>
+                                
+           
         
                             </td>
                         </tr>
@@ -136,6 +152,19 @@
             console.error('Error loading interactions:', error);
         });
     }
+
+    function saveBookmark(bookmarkElement) {
+            const imgElement = bookmarkElement.querySelector('img');
+            const originalSrc = 'static/images/bookmark.png';
+            const bookmarkedSrc = 'static/images/bookmark_in.png'; // Change to your bookmarked image path
+
+            // Check current image source and toggle
+            if (imgElement.src.includes('bookmark.png')) {
+                imgElement.src = bookmarkedSrc; // Change to bookmarked image
+            } else {
+                imgElement.src = originalSrc; // Change back to original image
+            }
+        }
 
     $(function() {
         $("input[name='query']").autocomplete({

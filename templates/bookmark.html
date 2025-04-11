@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bookmark Feature</title>
+    <style>
+        #bookmark-list {
+            margin-top: 20px;
+        }
+        .product {
+            margin: 10px 0;
+        }
+        .bookmark-icon {
+            cursor: pointer;
+            width: 20px; /* Adjust size as needed */
+            height: 20px; /* Adjust size as needed */
+            margin-left: 10px;
+            vertical-align: middle; /* Align with text */
+        }
+    </style>
+</head>
+<body>
+
+    <h1>My Products</h1>
+    <div class="product">
+        Product 1 
+        <img src="bookmark.png" alt="Bookmark" class="bookmark-icon" onclick="toggleBookmark('Product 1', this)">
+    </div>
+    <div class="product">
+        Product 2 
+        <img src="bookmark.png" alt="Bookmark" class="bookmark-icon" onclick="toggleBookmark('Product 2', this)">
+    </div>
+    <div class="product">
+        Product 3 
+        <img src="bookmark.png" alt="Bookmark" class="bookmark-icon" onclick="toggleBookmark('Product 3', this)">
+    </div>
+    
+    <h2>Bookmarks:</h2>
+    <div id="bookmark-list"></div>
+
+    <script>
+        const bookmarks = [];
+
+        function toggleBookmark(item, element) {
+            const index = bookmarks.indexOf(item);
+            if (index === -1) {
+                bookmarks.push(item);
+                element.src = 'bookmark_in.png'; // Change to solid icon
+            } else {
+                bookmarks.splice(index, 1);
+                element.src = 'bookmark.png'; // Change back to outline icon
+            }
+            displayBookmarks();
+        }
+
+        function displayBookmarks() {
+            const list = document.getElementById('bookmark-list');
+            list.innerHTML = ''; // Clear existing bookmarks
+            bookmarks.forEach(bookmark => {
+                const div = document.createElement('div');
+                div.textContent = bookmark;
+                list.appendChild(div);
+            });
+        }
+    </script>
+
+</body>
+</html>
+
+
+

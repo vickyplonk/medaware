@@ -16,7 +16,7 @@ top_uses_terms = uses_df['Term'].head(200).tolist()
 brand_names = sorted(med_df['Medicine Name'].dropna().unique())
 composition_names = sorted(med_df['Composition'].dropna().unique())
 autocomplete_list = sorted(set(brand_names + composition_names))
-print(autocomplete_list)
+
 # Build interaction lookup dictionary
 interaction_lookup = {}
 for _, row in interactions_df.iterrows():
